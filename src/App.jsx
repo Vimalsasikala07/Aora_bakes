@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Routes, Route, Link, NavLink, useLocation } from "react-router-dom";
-import { CakeSlice, Menu, X, Heart, Phone, MapPin, Clock, Instagram, MessageCircle, ArrowRight, CalendarDays, Sparkles, ShoppingCart, Plus, Minus, Trash2, Upload, Camera, Star } from "lucide-react";
+import { CakeSlice, Menu, X, Heart, Phone, MapPin, Clock, Instagram, MessageCircle, ArrowRight, CalendarDays, Sparkles, ShoppingCart, Plus, Minus, Trash2, Star, Check } from "lucide-react";
 
 const WHATSAPP_NUMBER = "919345506095";
 const INSTAGRAM_URL = "https://www.instagram.com/aora_bakes/";
@@ -480,6 +480,66 @@ function Cart({ items, onChangeQuantity, onRemove }) {
   );
 }
 
+const CAKE_STYLES = [
+  {
+    name: "Chocolate celebration cake",
+    subtitle: "Rich layered chocolate sponge & silky ganache",
+    badge: "Bestseller",
+    previewImage: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1000&q=85"
+  },
+  {
+    name: "Fresh cream cake",
+    subtitle: "Airy vanilla sponge with fluffy whipped cream",
+    badge: "Light & Soft",
+    previewImage: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=1000&q=85"
+  },
+  {
+    name: "Classic buttercream cake",
+    subtitle: "Velvety frosting with elegant artisanal finish",
+    badge: "Timeless",
+    previewImage: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1000&q=85"
+  },
+  {
+    name: "Custom theme cake",
+    subtitle: "Handcrafted milestone & birthday theme design",
+    badge: "Bespoke",
+    previewImage: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=1000&q=85"
+  }
+];
+
+const CAKE_FLAVORS = [
+  {
+    name: "Chocolate truffle",
+    description: "Deep Belgian cocoa & ganache",
+    color: "#3d231e",
+    tag: "Decadent"
+  },
+  {
+    name: "Classic vanilla",
+    description: "Madagascar vanilla bean cream",
+    color: "#d4a359",
+    tag: "Classic"
+  },
+  {
+    name: "Red velvet",
+    description: "Silky cocoa & cream cheese touch",
+    color: "#8b263e",
+    tag: "Signature"
+  },
+  {
+    name: "Strawberry cream",
+    description: "Fresh strawberry compote & cream",
+    color: "#d9657b",
+    tag: "Fruity"
+  },
+  {
+    name: "Butterscotch",
+    description: "Caramelized praline crunch & butter",
+    color: "#c27d2c",
+    tag: "Crunchy"
+  }
+];
+
 function CustomizeOrder() {
   const [order, setOrder] = useState({
     cake: "Chocolate celebration cake",
@@ -490,58 +550,9 @@ function CustomizeOrder() {
     message: "",
     notes: ""
   });
-  const [referenceImage, setReferenceImage] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-
   const sizePrices = { "0.5 kg": 599, "1 kg": 999, "1.5 kg": 1399, "2 kg": 1799 };
   const estimatedPrice = sizePrices[order.size];
   const minimumDate = new Date().toISOString().split("T")[0];
-
-  const handleImageFile = (file) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload a valid image file (PNG, JPG, WEBP, etc.)");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      alert("Image size should be less than 10MB");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setReferenceImage({
-        name: file.name,
-        url: e.target.result,
-        size: (file.size / 1024).toFixed(0) + " KB"
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleFileInput = (e) => {
-    const file = e.target.files?.[0];
-    if (file) handleImageFile(file);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleImageFile(file);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const removeReferenceImage = () => {
-    setReferenceImage(null);
-  };
 
   const orderMessage = [
     "Hi Aora Bakes! I'd like to customize a cake:",
@@ -552,9 +563,6 @@ function CustomizeOrder() {
     `Needed by: ${order.date || "Please confirm availability"}`,
     `Cake message: ${order.message || "No message"}`,
     `Design notes: ${order.notes || "None"}`,
-    referenceImage
-      ? `Reference image: Attached custom photo (${referenceImage.name}) - I will share the photo in this chat!`
-      : "Reference image: None",
     `Estimated starting price: ₹${estimatedPrice}`
   ].join("\n");
 
@@ -579,22 +587,74 @@ function CustomizeOrder() {
               <div><h2>Your cake details</h2><p>Tell us what you’re celebrating.</p></div>
             </div>
 
-            <label className="field-label" htmlFor="cake">Cake style</label>
-            <select id="cake" name="cake" value={order.cake} onChange={updateOrder}>
-              <option>Chocolate celebration cake</option>
-              <option>Fresh cream cake</option>
-              <option>Classic buttercream cake</option>
-              <option>Custom theme cake</option>
-            </select>
+            <fieldset className="custom-picker-fieldset">
+              <legend className="field-label">Cake style</legend>
+              <div className="cake-style-grid">
+                {CAKE_STYLES.map(style => {
+                  const isSelected = order.cake === style.name;
+                  return (
+                    <label
+                      key={style.name}
+                      className={`cake-style-card ${isSelected ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="cake"
+                        value={style.name}
+                        checked={isSelected}
+                        onChange={updateOrder}
+                      />
+                      <div className="style-card-header">
+                        <span className="style-badge">{style.badge}</span>
+                        <span className={`picker-check-circle ${isSelected ? "active" : ""}`}>
+                          {isSelected && <Check size={12} strokeWidth={3} />}
+                        </span>
+                      </div>
+                      <div className="style-card-body">
+                        <span className="style-title">{style.name}</span>
+                        <span className="style-desc">{style.subtitle}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
 
-            <label className="field-label" htmlFor="flavor">Flavor</label>
-            <select id="flavor" name="flavor" value={order.flavor} onChange={updateOrder}>
-              <option>Chocolate truffle</option>
-              <option>Classic vanilla</option>
-              <option>Red velvet</option>
-              <option>Strawberry cream</option>
-              <option>Butterscotch</option>
-            </select>
+            <fieldset className="custom-picker-fieldset">
+              <legend className="field-label">Flavor</legend>
+              <div className="flavor-grid">
+                {CAKE_FLAVORS.map(flv => {
+                  const isSelected = order.flavor === flv.name;
+                  return (
+                    <label
+                      key={flv.name}
+                      className={`flavor-card ${isSelected ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="flavor"
+                        value={flv.name}
+                        checked={isSelected}
+                        onChange={updateOrder}
+                      />
+                      <div className="flavor-header">
+                        <div className="flavor-swatch-wrap">
+                          <span className="flavor-dot" style={{ backgroundColor: flv.color }} />
+                          <span className="flavor-tag">{flv.tag}</span>
+                        </div>
+                        <span className={`picker-check-circle ${isSelected ? "active" : ""}`}>
+                          {isSelected && <Check size={11} strokeWidth={3} />}
+                        </span>
+                      </div>
+                      <div className="flavor-body">
+                        <span className="flavor-name">{flv.name}</span>
+                        <span className="flavor-notes">{flv.description}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
 
             <fieldset className="size-fieldset">
               <legend>Choose a size</legend>
@@ -627,77 +687,9 @@ function CustomizeOrder() {
             <label className="field-label" htmlFor="notes">Design notes <span>optional</span></label>
             <textarea id="notes" name="notes" rows="3" placeholder="Colors, theme, or little details you have in mind" value={order.notes} onChange={updateOrder} />
 
-            <div className="reference-field">
-              <label className="field-label" htmlFor="reference-file-upload">
-                Reference cake image <span>optional</span>
-              </label>
-
-              {!referenceImage ? (
-                <div
-                  className={`upload-dropzone ${isDragging ? "dragging" : ""}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    id="reference-file-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInput}
-                    className="upload-input"
-                  />
-                  <div className="upload-icon-circle">
-                    <Upload size={22} />
-                  </div>
-                  <div className="upload-prompt">
-                    <b>Click to upload reference image</b> or drag & drop
-                    <p>Upload a photo or sketch of the cake design you want (PNG, JPG up to 10MB)</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="uploaded-preview-card">
-                  <div className="uploaded-thumb">
-                    <img src={referenceImage.url} alt="Reference preview" />
-                  </div>
-                  <div className="uploaded-info">
-                    <span className="uploaded-badge">✓ Reference Image Added</span>
-                    <b className="uploaded-filename" title={referenceImage.name}>{referenceImage.name}</b>
-                    <small>{referenceImage.size}</small>
-                  </div>
-                  <div className="uploaded-actions">
-                    <label htmlFor="reference-file-replace" className="replace-btn" title="Change reference photo">
-                      Change
-                      <input
-                        id="reference-file-replace"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileInput}
-                        style={{ display: "none" }}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className="remove-btn"
-                      onClick={removeReferenceImage}
-                      title="Remove image"
-                      aria-label="Remove reference image"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
             <a className="primary-btn customize-submit" href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMessage)}`} target="_blank" rel="noreferrer">
               Send your cake brief <ArrowRight size={18} />
             </a>
-
-            {referenceImage && (
-              <p className="reference-tip">
-                📸 <strong>Note:</strong> Your WhatsApp message mentions this reference photo. Please send your photo in the chat after WhatsApp opens!
-              </p>
-            )}
 
             <p className="form-footnote">We’ll confirm the final design, availability, and price with you on WhatsApp.</p>
           </form>
@@ -705,12 +697,12 @@ function CustomizeOrder() {
           <aside className="order-preview">
             <div className="preview-photo">
               <img
-                src={referenceImage ? referenceImage.url : "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1000&q=85"}
-                alt={referenceImage ? "Your reference cake design" : "Chocolate cake with elegant frosting"}
+                src={(CAKE_STYLES.find(s => s.name === order.cake) || CAKE_STYLES[0]).previewImage}
+                alt={order.cake}
               />
               <span>
-                {referenceImage ? <Camera size={15} /> : <Sparkles size={15} />}
-                {referenceImage ? "Your Reference Design" : "Baked fresh to order"}
+                <Sparkles size={15} />
+                {(CAKE_STYLES.find(s => s.name === order.cake) || CAKE_STYLES[0]).badge} • Baked fresh
               </span>
             </div>
             <div className="preview-summary">
@@ -720,7 +712,6 @@ function CustomizeOrder() {
               <div className="summary-line"><span>Style</span><b>{order.cake}</b></div>
               <div className="summary-line"><span>Flavor</span><b>{order.flavor}</b></div>
               <div className="summary-line"><span>Size</span><b>{order.size}</b></div>
-              <div className="summary-line"><span>Reference</span><b>{referenceImage ? "Custom photo ✓" : "None"}</b></div>
             </div>
           </aside>
         </div>
